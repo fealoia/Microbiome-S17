@@ -7,10 +7,15 @@ import os
 import matplotlib.pyplot as plt
 import pickle
 
+'''
+	Main function that gathers rough reads, pickles the dictionaries containing them,
+	then sends 50 at a time to web blast. Saves the XML responses from web blast
+'''
+
+
 blast_in = {}
 
-#bl_str = '>640131.3.peg.3667\nATGTCTAAGATTAAAGGTAACGTTAAGTGGTTTAATGAGTCCAAAGGATTCGGTTTCATTACTCCGGAAGATGGCAGCAAAGATGTATTCGTACACTTCTCTGCAATCCAGTCCAACGGTTTCAAAACTCTGGCTGAAGGTCAGCGTGTAGAGTTCGAAATCACTAACGGTGCCAAAGGCCCTTCTGCTGCAAACGTAATGGCTATCTAA\n>1328374.3.peg.1050\nATGAAATATGCAGCTTTAGTGGCAGGTGCAGCATTGTTTTTAACGGCGAACGCCTTCTCCGCTGAGATTTTAACGAAAGAAGCCTTTAATAAGGTCCATACGCAATATACCAAAATCGGCACCATTTCCTCTACCGGCCAGACTGCGCCGAGCGATGCCCGTGAAGAGCTGATTAAAAAGGCCGATGAAAAAGGCGCGGACGTTATCGTGCTCTCTTCCGGTAATACCGATAAAAAACTGCACGTCTCCGCTAACATCTATAAGAAGAAGTAA'
-
+#Helper function which searches for ID for a given sequence
 def find_alts(id_string,spec_name):
 	alt_path = '../../midas_db_v1.2/pan_genomes/'+spec_name+'/centroids.ffn.gz'
 	targ_seq = ''
@@ -26,14 +31,15 @@ def find_alts(id_string,spec_name):
 	blast_in[id_string] = targ_seq
 	return targ_seq
 
-
+#uses Biopython to submit blast query to Web blast and saves the result
 def blast_n(blast_str,name,i):
 	res_handle = NCBIWWW.qblast('blastn','nt',blast_str)
 
 	#blast_record = NCBIXML.read(res_handle)
-	with open("blastpkl_res_rough_reads_kleb_latest_"+name+'_'+str(i)+"_genes.xml","w") as out_file:
+	with open("blastpkl_res_rough_reads_latest_"+name+'_'+str(i)+"_genes.xml","w") as out_file:
 		out_file.write(res_handle.read())
 
+#loads reads into memory
 def load_file(filename,bact_dict):
 	with gzip.open(filename,'rt') as fn:
 		for line in fn.readlines():
@@ -55,6 +61,7 @@ def load_file(filename,bact_dict):
 				bact_dict[family_id][int(gene_id[3])]['num'] = int(info_list[1])
 				bact_dict[family_id][int(gene_id[3])]['alts'] = []
 
+#checks for broken reads
 def check_broken(bact_dict,species_info,spec_name,fix):
 	#y = []
 	for family in bact_dict.keys():
@@ -72,6 +79,7 @@ def check_broken(bact_dict,species_info,spec_name,fix):
 			elif(bact_dict[family][pos]['num'] >= 1 and bact_dict[family][pos]['num']<100):
 				continue
 
+#iterator function over load_file
 def load_all_bacteria_infile_intodict(start_path,species_dict,species_info):
 	#print(os.listdir(start_path))
 	for bact in os.listdir(start_path):
@@ -79,6 +87,7 @@ def load_all_bacteria_infile_intodict(start_path,species_dict,species_info):
 		species_dict[bact] = {}
 		load_file(start_path+bact,species_dict[bact])
 
+#calls check_broken and pickles the results
 def check_adjacents():
 	start_path = '../../data_out/pool_Apair_res/main_genes/output/'
 	species_reads = {}
@@ -86,27 +95,21 @@ def check_adjacents():
 	load_all_bacteria_infile_intodict(start_path,species_reads,species_info)
 	for spec in species_reads:
 		spec_name = spec.split('.')[0]
-		check_broken(species_reads[spec],species_info[spec],spec_name,True)
+		check_broken(species_reads[spec],species_info[spec],spec_name,False)
 		pickle.dump(blast_in,open('rough_reads_seqs_' + spec_name + '.pkl','wb'))
 	return species_reads,species_info
 
-def write_dict():
-	with open("blast_these_genes.txt","w") as fn:
-		for key in blast_in.keys():
-			fn.write(">"+key)
-			fn.write(blast_in[key])
 
-#pickle.dump(blast_in,open('rough_reads_seqs.pkl','wb'))
-#print(blast_in)
-#blast_in = pickle.load(open('rough_reads_seqs.pkl','rb'))
-#blast_str = ''
-
-
+#main function call that runs after the pkls are ready
+#For use on local, has a start point. It prints where it is, so if interrupted, 
+#the last point will have been printed to the console which can then be passed 
+#to function call
 def main_blast(start_ct):
 	blast_str=''
 	cter = 0
 	for f in os.listdir():
 		if(f.startswith('rough')):
+			#species genus completed in a different way
 			if(f.startswith('rough_reads_seqs_Bacteroides')):
 				continue
 			name = f[17:len(f)-4] 

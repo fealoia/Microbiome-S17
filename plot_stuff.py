@@ -3,6 +3,10 @@ from matplotlib.ticker import FormatStrFormatter
 import numpy as np
 import check_adjacents
 
+'''
+	Plotting code for each of the different plots
+'''
+
 path = '/Users/williampascucci/Documents/Research/MIDAS/data_out/pool_Apair_res/genes/'
 
 species_reads,species_info = check_adjacents.check_adjacents()

@@ -4,10 +4,18 @@ import collections
 import os
 import matplotlib.pyplot as plt
 
+'''
+	Main function for checking the smoothness or roughness of the adjacent read mappings.
+	Keeps track of total mapped reads, total number of genes mapped to, number of smooth
+	reads, and number of rough reads
+'''
+
 start_path = '../data_out/pool_Apair_res/main_genes/output/'
 species_reads = {}
 species_info = {}
 
+
+#loads MIDAS results into memory
 def load_file(filename,bact_dict):
 	with gzip.open(filename,'rt') as fn:
 		for line in fn.readlines():
@@ -25,6 +33,9 @@ def load_file(filename,bact_dict):
 				bact_dict[family_id] = collections.OrderedDict()
 				bact_dict[family_id][int(gene_id[3])] = int(info_list[1])
 
+#analyzes the nature of each MIDAS output
+#previous functionality/alternate methods are commented out but left because they
+#allow for different use of the method
 def check_broken(bact_dict,species_info,spec_name):
 	species_info['smooth_mappings'] = 0
 	species_info['rough_mappings'] = 0
@@ -60,23 +71,7 @@ def check_broken(bact_dict,species_info,spec_name):
 			elif(bact_dict[family][pos] >= 1 and bact_dict[family][pos]<10):
 				species_info['low_read_mappings']+=1
 
-def check_unique_families(start_path):
-	family_dict = {}
-	for bact in os.listdir(start_path):
-		with gzip.open(start_path+bact,'rt') as fn:
-			for line in fn.readlines():
-				info_list = line.split('\t')
-				if(info_list[0]=='gene_id'):
-					continue
-				gene_id = info_list[0].split('.')
-				#different than load_file's procedure
-				family_id = gene_id[0]
-				if(not(family_id) in family_dict):
-					family_dict[family_id] = [bact]
-				elif(not(bact in family_dict[family_id])):
-					print('found!')
-					family_dict[family_id].append(bact)
-
+#iterator function calling load_file
 def load_all_bacteria_infile_intodict(start_path,species_dict,species_info):
 	#print(os.listdir(start_path))
 	for bact in os.listdir(start_path):
@@ -85,7 +80,8 @@ def load_all_bacteria_infile_intodict(start_path,species_dict,species_info):
 		#print(bact)
 		load_file(start_path+bact,species_dict[bact])
 
-
+#iterator function that holds the dictionaries and calls check_broken
+#different outputs were commented in or out at different times
 def check_adjacents():
 	start_path = '../data_out/pool_Apair_res/genes/output/'
 	species_reads = {}

@@ -4,17 +4,18 @@ import collections
 import os
 import matplotlib.pyplot as plt
 
+'''
+	This file is used for plotting the mapped reads together per species. It
+	also colors the bars to give a sense of smooth or rough mappings.
+	This file has some similar functionality to check_adjacents.py, but certain methods 
+	are altered for the sake of plotting visually the reads.
+'''
+
 start_path = '../data_out/pool_Apair_res/genes/output/'
 species_reads = {}
 species_info = {}
 
-def build_gene_dict():
-	for i in range(4):
-		load_file(kleb_list[i],kleb_dict[i])
-	#for bact in os.listdir(start_path)
-	return	
-		
-
+#This loads the reads per bacteria into memory for analysis
 def load_file(filename,bact_dict):
 	with gzip.open(filename,'rt') as fn:
 		for line in fn.readlines():
@@ -32,6 +33,8 @@ def load_file(filename,bact_dict):
 				bact_dict[family_id] = collections.OrderedDict()
 				bact_dict[family_id][int(gene_id[3])] = int(info_list[1])
 
+#This function builds up 3 lists based on rough reads, smooth reads, and low read mappings
+#It was built using the above or below 100 reads threshold
 def check_broken(bact_dict,species_info,spec_name):
 	species_info['smooth_mappings'] = 0
 	species_info['rough_mappings'] = 0
@@ -82,6 +85,7 @@ def check_broken(bact_dict,species_info,spec_name):
 	name = spec_name.split('.')
 	plt.savefig('Pool_A95perc_all_reads_'+name[0]+'.png')
 
+#Sanity check function that just checked that the Genome id's were unique
 def check_unique_families(start_path):
 	family_dict = {}
 	for bact in os.listdir(start_path):
@@ -99,6 +103,7 @@ def check_unique_families(start_path):
 					print('found!')
 					family_dict[family_id].append(bact)
 
+#iterator function that calles the load_file
 def load_all_bacteria_infile_intodict(start_path,species_dict,species_info):
 	#print(os.listdir(start_path))
 	for bact in os.listdir(start_path):
@@ -107,11 +112,7 @@ def load_all_bacteria_infile_intodict(start_path,species_dict,species_info):
 		#print(bact)
 		load_file(start_path+bact,species_dict[bact])
 
-#check_unique_families(start_path)
-#build_gene_dict()
-#print(kleb_dict[1])
-#check_broken(kleb_dict[1])
-
+#iterator function that calls check_broken
 def check_adjacents():
 	start_path = '../data_out/pool_Apair_res/genes/output/'
 	species_reads = {}

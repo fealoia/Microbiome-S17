@@ -93,7 +93,7 @@ def read_blast(fn):
 #iterates over all the xml files in the directory (a lot)
 def web_resp_into_dict():
 	for fn in os.listdir():
-		if(fn.startswith('blastpkl_res_rough_reads_kleb_latest_')):
+		if(fn.startswith('blastpkl_res_rough_reads_latest_')):
 			read_blast(fn)
 	return
 
